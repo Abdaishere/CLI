@@ -58,17 +58,27 @@ public class Terminal {
     public void rmdir() {
         ArrayList<String> args = parser.getArgs();
         String dir = args.get(0);
-        if (dir.equals("*")){
-            File theDir = new File(System.getProperty("user.dir"));
-            for(int i = 0; i<theDir.listFiles().length; i++) {
+        try {
+            if (dir.equals("*")) {
+                File theDir = new File(System.getProperty("user.dir"));
+                for (int i = 0; i < theDir.listFiles().length; i++) {
 
-                if (theDir.listFiles()[i].listFiles().length == 0) {
-                    theDir.listFiles()[i].delete();
+                    if (theDir.listFiles()[i].listFiles().length == 0) {
+                        theDir.listFiles()[i].delete();
+                    }
+
                 }
-                
+            } else {
+                File theDir = new File(dir);
+                if (theDir.listFiles().length == 0) {
+                    theDir.delete();
+                }
             }
+        } catch (Exception e) {
+            e.getCause();
         }
     }
+
     public void cd(String[] args) {
 
     }
@@ -93,8 +103,9 @@ public class Terminal {
                 mkdir();
                 break;
             }
-            case "rmdir":{
-
+            case "rmdir": {
+                rmdir();
+                break;
             }
             default:
                 throw new IllegalStateException("Unexpected value: " + parser.getCommandName());
