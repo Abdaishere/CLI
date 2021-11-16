@@ -61,21 +61,51 @@ public class Terminal {
         try {
             if (dir.equals("*")) {
                 File theDir = new File(System.getProperty("user.dir"));
-                for (int i = 0; i < theDir.listFiles().length; i++) {
-
-                    if (theDir.listFiles()[i].listFiles().length == 0) {
-                        theDir.listFiles()[i].delete();
+                File[] tmp = theDir.listFiles();
+                for (int i = 0; i < tmp.length; i++) {
+                    File file = tmp[i];
+                    if (!file.isFile()) {
+                        if (file.listFiles().length == 0) {
+                            file.delete();
+                        }
                     }
-
                 }
             } else {
-                File theDir = new File(dir);
+
+                File theDir;
+                // check if full or short path
+                if (dir.contains(":")) {
+                    theDir = new File(dir);
+                } else {
+                    theDir = new File(System.getProperty("user.dir") + "\\" + dir);
+                }
+                System.out.println(1);
                 if (theDir.listFiles().length == 0) {
                     theDir.delete();
                 }
+
             }
         } catch (Exception e) {
-            e.getCause();
+            System.out.println(e);
+        }
+    }
+
+    void touch() {
+        ArrayList<String> tmp = parser.getArgs();
+        File file;
+
+        // check if full or short path
+        if (tmp.get(0).contains(":")) {
+            file = new File(tmp.get(0));
+        } else {
+            file = new File(System.getProperty("user.dir") + "\\" + tmp.get(0));
+        }
+
+        try {
+            if (!new File(tmp.get(0)).exists())
+                file.createNewFile();
+        } catch (IOException e) {
+            System.out.println(e);
         }
     }
 
@@ -105,6 +135,10 @@ public class Terminal {
             }
             case "rmdir": {
                 rmdir();
+                break;
+            }
+            case "touch": {
+                touch();
                 break;
             }
             default:
