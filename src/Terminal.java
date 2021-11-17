@@ -1,11 +1,10 @@
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
-import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
 public class Terminal {
@@ -15,7 +14,7 @@ public class Terminal {
         parser = new Parser();
     }
 
-    public void run(String input) {
+    public void run(String input) throws IOException {
         parser.parse(input);
         chooseCommandAction();
     }
@@ -109,13 +108,157 @@ public class Terminal {
         }
     }
 
+    public void cat() {
+        ArrayList<String> tmp = parser.getArgs();
+        File file;
+        File file2;
+        if (tmp.size() == 1) {
+            file = new File(System.getProperty("user.dir") + "\\" + tmp.get(0));
+            try {
+                Scanner scan = new Scanner(file);
+                while (scan.hasNextLine()) {
+                    System.out.println(scan.nextLine());
+                }
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+
+        } else if (tmp.size() == 2) {
+            file = new File(System.getProperty("user.dir") + "\\" + tmp.get(0));
+
+            file2 = new File(System.getProperty("user.dir") + "\\" + tmp.get(1));
+            try {
+                Scanner scan = new Scanner(file);
+
+
+                String fileContent = "";
+                while (scan.hasNextLine()) {
+                    fileContent = fileContent.concat(scan.nextLine() + "\n");
+                }
+
+                Scanner scan2 = new Scanner(file2);
+                while (scan2.hasNextLine()) {
+                    fileContent = fileContent.concat(scan2.nextLine() + "\n");
+
+                }
+                System.out.println(fileContent);
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    public void rm() {
+        ArrayList<String> tmp = parser.getArgs();
+        if (tmp.size() == 1) {
+            File file;
+            file = new File(System.getProperty("user.dir") + "\\" + tmp.get(0));
+            file.delete();
+        } else {
+            System.out.println("Error");
+            return;
+        }
+    }
+
+    public void cp() throws IOException {
+        ArrayList<String> tmp = parser.getArgs();
+        if (!tmp.get(0).equals("-r")) {
+            FileReader ins = null;
+            FileWriter outs = null;
+            try {
+                File sourceLocation = new File(System.getProperty("user.dir") + "\\" + tmp.get(0));
+                File targetLocation = new File(System.getProperty("user.dir") + "\\" + tmp.get(1));
+
+                InputStream in = new FileInputStream(sourceLocation);
+                OutputStream out = new FileOutputStream(targetLocation);
+
+                // Copy the bits from instream to outstream
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+                in.close();
+                out.close();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+
+        } else {
+            try {
+                File sourceLocation = new File(System.getProperty("user.dir") + "\\" + tmp.get(1));
+                File targetLocation = new File(System.getProperty("user.dir") + "\\" + tmp.get(2));
+                if (sourceLocation.isDirectory()) {
+                    if (!targetLocation.exists()) {
+                        targetLocation.mkdir();
+                    }
+
+                    String[] children = sourceLocation.list();
+                    for (int i = 0; i < children.length; i++) {
+                        copy(new File(sourceLocation, children[i]),
+                                new File(targetLocation, children[i]));
+                    }
+                } else {
+
+                    InputStream in = new FileInputStream(sourceLocation);
+                    OutputStream out = new FileOutputStream(targetLocation);
+
+                    // Copy the bits from instream to outstream
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+                    in.close();
+                    out.close();
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+    }
+
+    public void copy(File sourceLocation, File targetLocation)
+            throws IOException {
+
+        if (sourceLocation.isDirectory()) {
+            if (!targetLocation.exists()) {
+                targetLocation.mkdir();
+            }
+
+            String[] children = sourceLocation.list();
+            for (int i = 0; i < children.length; i++) {
+                copy(new File(sourceLocation, children[i]),
+                        new File(targetLocation, children[i]));
+            }
+        } else {
+
+            InputStream in = new FileInputStream(sourceLocation);
+            OutputStream out = new FileOutputStream(targetLocation);
+
+            // Copy the bits from instream to outstream
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+            in.close();
+            out.close();
+        }
+    }
+
     public void cd(String[] args) {
 
     }
 
     // ...
-    //This method will choose the suitable command method to be called
-    public void chooseCommandAction() {
+//This method will choose the suitable command method to be called
+    public void chooseCommandAction() throws IOException {
         switch (parser.getCommandName()) {
             case "pwd": {
                 System.out.println(pwd());
@@ -141,18 +284,34 @@ public class Terminal {
                 touch();
                 break;
             }
+            case "cat": {
+                cat();
+                break;
+            }
+            case "rm": {
+                rm();
+                break;
+            }
+            case "cp": {
+                cp();
+                break;
+            }
             default:
                 throw new IllegalStateException("Unexpected value: " + parser.getCommandName());
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         String input;
         Scanner scan = new Scanner(System.in);
         Terminal terminal = new Terminal();
         input = scan.nextLine();
         while (!input.equals("exit")) {
-            terminal.run(input);
+            try {
+                terminal.run(input);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
             input = scan.nextLine();
         }
     }
