@@ -9,8 +9,6 @@ public class Parser {
         args = new ArrayList<>();
     }
 
-    //This method will divide the input into commandName and args
-//where "input" is the string command entered by the user
     public boolean parse(String input) {
         if (input == null)
             return false;
@@ -22,7 +20,7 @@ public class Parser {
         }
         return true;
     }
-
+    
     public String getCommandName() {
         return commandName;
     }
